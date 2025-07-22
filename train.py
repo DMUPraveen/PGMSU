@@ -13,7 +13,7 @@ import time
 from model.model import PGMSU
 from hyperVca import hyperVca
 from loadhsi import loadhsi
-
+import utilities
 
 def set_seed(seed):
     random.seed(seed)
@@ -38,8 +38,20 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 cases = ['ex2', 'ridge']
 case = cases[1]
 # load data
-Y, A_true, P = loadhsi(case)
+# Y, A_true, P = loadhsi(case)
+DATASET = "urban_4_K_4"
+DATASET_PATH = "../hsi_datasets/"
+DATSET_FILE = os.path.join(DATASET_PATH,DATASET)
+data = scio.loadmat(DATSET_FILE)
+Y = data['Y'].astype(np.float32)
+AAA = data['A'].astype(np.float32)
+MMM = data['M'].astype(np.float32)
+P = AAA.shape[0]
+H,W = map(int,list(data['HW'].ravel()))
+A_true = AAA.reshape(P,H,W)
+print(f"{Y.shape=} {A_true.shape=} {P=}")
 
+case = 'urban'
 if case == 'ridge':
     lambda_kl = 0.1
     lambda_sad = 3
@@ -53,11 +65,14 @@ if case == 'urban':
     lambda_kl = 0.001
     lambda_sad = 4
     lambda_vol = 6
+
+
 Channel = Y.shape[0]
 N = Y.shape[1]
 batchsz = N//10
 lr = 1e-3
 epochs = 200
+# epochs = 2
 z_dim = 4
 
 model_weights = './PGMSU_weight/'
@@ -167,28 +182,12 @@ with torch.no_grad():
                                               'A': A_hat.T,
                                               'Y_hat': y_hat.cpu().numpy()})
 
-    if case == 'ex2':
-        file = './dataset/data_ex2.mat'
-        data = scio.loadmat(file)
-        Mvs = data['Mvs']  # L,P,N
+    M_pred = em_hat.mean(axis=0).T.cpu().detach().numpy()
+    print(f"{M_pred.shape=},{A_hat.shape=}")
+    A_corrected,M_corrected = utilities.correct_permuation(A_pred=A_hat,A_true=AAA,M_pred=M_pred,M_true=MMM)
+    OUTPUT_PATH = "outputs"
+    save_path = os.path.join(OUTPUT_PATH,DATASET)
+    os.makedirs(save_path,exist_ok=True)
+    utilities.plot_figures(A_pred=A_corrected,A_true=AAA,M_pred=M_corrected,M_true=MMM,H=H,save_path=save_path)
+    utilities.calculate_errors(A_pred=A_corrected,A_true=AAA,M_pred=M_corrected,M_true=MMM,save_path=save_path)
 
-        EM_hat = em_hat.data.cpu().numpy()  # N,P,L
-        EM_hat = np.transpose(EM_hat, (2, 1, 0))  # L,P,N
-
-        norm_EM_GT = np.sqrt(np.sum(Mvs ** 2, 0))
-        norm_EM_hat = np.sqrt(np.sum(EM_hat ** 2, 0))
-        inner_prod = np.sum(Mvs * EM_hat, 0)
-        em_sad = np.arccos(inner_prod / norm_EM_GT / norm_EM_hat)
-        asad_em = np.mean(em_sad)
-
-        Mvs = np.reshape(Mvs, [Channel, P * N])
-        EM_hat = np.reshape(EM_hat, [Channel, P * N])
-        armse_em = np.mean(np.sqrt(np.mean((Mvs - EM_hat) ** 2, axis=0)))
-
-print('*' * 70)
-print('RESULTS:')
-print('armse_a:', armse_a)
-print('armse_Y', armse_y, 'asad_Y', asad_y)
-if case == 'ex2':
-    print('aRMSE_M', armse_em)
-    print('asad_em', asad_em)
