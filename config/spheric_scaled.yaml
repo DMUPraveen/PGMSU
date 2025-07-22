@@ -1,0 +1,7 @@
+dataset: Spheric_Synthetic_0_3_perlin_raw
+kl: 0.016388843363444986
+sad: 4.447627267758858
+vol: 9.37789318845051
+epochs: 200
+lr: 1e-3
+

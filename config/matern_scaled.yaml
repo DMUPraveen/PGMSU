@@ -1,7 +1,7 @@
-dataset: Matern_Synthetic 
-kl: 0.012788646809502457
-sad: 8.515471500524859
-vol: 8.20499257856017
+dataset: Matern_Synthetic_0_3_perlin_raw
+kl: 7.235675833928043e-05
+sad: 6.188112999598504
+vol: 8.370986528482442
 epochs: 200
 lr: 1e-3
 
