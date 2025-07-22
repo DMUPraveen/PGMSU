@@ -1,8 +1,6 @@
 defaults:
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: tpe
-  - override hydra/launcher: joblib
-
 
 hydra:
   sweeper:
@@ -18,7 +16,7 @@ hydra:
       sad: interval(0,10)
       vol: interval(0,10)
 
-dataset: samson
+dataset: Matern_Synthetic
 kl: 0.001
 sad: 4
 vol: 6

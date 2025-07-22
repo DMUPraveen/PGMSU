@@ -1,0 +1,7 @@
+dataset: Matern_Synthetic 
+kl: 0.012788646809502457
+sad: 8.515471500524859
+vol: 8.20499257856017
+epochs: 200
+lr: 1e-3
+

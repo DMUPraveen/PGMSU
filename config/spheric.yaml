@@ -1,0 +1,7 @@
+dataset: Spheric_Synthetic 
+kl: 0.019251330915775133
+sad: 8.301690582105651
+vol: 4.858889106164496
+epochs: 200
+lr: 1e-3
+

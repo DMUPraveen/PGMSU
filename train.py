@@ -17,7 +17,11 @@ import utilities
 import hydra
 from omegaconf import DictConfig
 import logging
+import math
+
+
 log = logging.getLogger(__name__)
+
 @hydra.main(version_base=None,config_path="config",config_name="config")
 def main(cfg:DictConfig):
     def set_seed(seed):
@@ -158,10 +162,10 @@ def main(cfg:DictConfig):
             optimizer.step()
 
         losses.append(loss.detach().cpu().numpy())
-        if (epoch + 1) % 50 == 0:
-            torch.save(model.state_dict(), model_weights)
-            scio.savemat(output_path + 'loss.mat', {'loss': losses})
-            print('epoch:',epoch+1,' save results!')
+        # if (epoch + 1) % 50 == 0:
+        #     torch.save(model.state_dict(), model_weights)
+        #     scio.savemat(output_path + 'loss.mat', {'loss': losses})
+        #     print('epoch:',epoch+1,' save results!')
 
     toc = time.time()
     print('time elapsed:', toc - tic)
@@ -188,9 +192,9 @@ def main(cfg:DictConfig):
         norm_y_hat = np.sqrt(np.sum(Y_hat ** 2, 1))
         asad_y = np.mean(np.arccos(np.sum(Y_hat * Y, 1) / norm_y / norm_y_hat))
 
-        scio.savemat(output_path + 'results.mat', {'EM': em_hat.data.cpu().numpy(),
-                                                'A': A_hat.T,
-                                                'Y_hat': y_hat.cpu().numpy()})
+        # scio.savemat(output_path + 'results.mat', {'EM': em_hat.data.cpu().numpy(),
+        #                                         'A': A_hat.T,
+        #                                         'Y_hat': y_hat.cpu().numpy()})
 
         M_pred = em_hat.mean(axis=0).T.cpu().detach().numpy()
         print(f"{M_pred.shape=},{A_hat.shape=}")
@@ -202,7 +206,11 @@ def main(cfg:DictConfig):
         error_values = utilities.calculate_errors(A_pred=A_corrected,A_true=AAA,M_pred=M_corrected,M_true=MMM,save_path=save_path)
         log.info(error_values)
         log.info(cfg)
-        return error_values["total_rmse"].item()
+        val =  error_values["total_rmse"].item()
+        if (math.isnan(val)):
+            return 100
+
+        return val
 
 if __name__ == "__main__":
     main()
