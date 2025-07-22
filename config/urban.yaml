@@ -1,0 +1,7 @@
+dataset: urban_4
+kl: 0.001
+sad: 4
+vol: 6
+epochs: 200
+lr: 1e-3
+

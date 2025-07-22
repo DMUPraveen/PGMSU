@@ -113,4 +113,4 @@ def calculate_errors(A_pred,M_pred,A_true,M_true,save_path):
             d
             )
 
-
+    return d
